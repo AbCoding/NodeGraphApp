@@ -1,27 +1,65 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+
+  <div style="width: 90vw; height: 90vh">
+      <baklava-editor :view-model="baklava" />
+      
+  </div>
+
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from './components/HelloWorld.vue';
+import { defineComponent } from "vue";
+import { EditorComponent, useBaklava } from "@baklavajs/renderer-vue";
+import InputNode from "./components/InputNode";
+import MathNode from "./components/MathNode"
+import DisplayNode from "./components/DisplayNode";
+import TrigNode from './components/TrigNode';
+import AdvancedMathNode from "./components/AdvancedMathNode";
+import ConstantNode  from "./components/ConstantNode";
+import { Editor } from "@baklavajs/core";
 
-@Options({
-  components: {
-    HelloWorld,
-  },
-})
-export default class App extends Vue {}
-</script>
+import { DependencyEngine } from "@baklavajs/engine";
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+import { applyResult } from "@baklavajs/engine";
+
+import "@baklavajs/themes/dist/syrup-dark.css";
+
+export default defineComponent({
+components: {
+  "baklava-editor": EditorComponent,
+},
+methods:{
+exec(){
+  
+  console.log(1)
 }
-</style>
+},
+setup() {
+
+
+
+  
+  const baklava = useBaklava();
+  
+ const engine = new DependencyEngine(baklava.editor);
+ baklava.editor.registerNodeType(InputNode);
+   baklava.editor.registerNodeType(AdvancedMathNode);
+  baklava.editor.registerNodeType(MathNode);
+  baklava.editor.registerNodeType(TrigNode);
+  baklava.editor.registerNodeType(DisplayNode);
+  baklava.editor.registerNodeType(ConstantNode);
+  
+
+  engine.start();
+  const token = Symbol();
+engine.events.afterRun.subscribe(token, (result) => {
+engine.pause();
+applyResult(result, baklava.editor);
+engine.resume();
+});
+  return { baklava };
+},
+
+});
+
+</script>
